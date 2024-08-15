@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @next/next/no-img-element */
 import React, {
   useCallback,
   useEffect,
@@ -39,6 +38,7 @@ export default function Home() {
         setGifs((prevGifs) =>
           newOffset === 0 ? response.data : [...prevGifs, ...response.data]
         );
+
         setTotalCount(response.pagination.total_count);
       } catch (error) {
         console.error("Error searching GIFs", error);
@@ -75,12 +75,9 @@ export default function Home() {
   return (
     <main className="p-4">
       <SearchForm search={search} onSearchChange={handleSearchChange} />
-
       {isLoading && <LoadingIndicator />}
       {!isLoading && gifs.length === 0 && <NoResultsMessage />}
-
       <GifGrid gifs={gifs} />
-
       <LoadMoreButton
         isVisible={gifs.length > 0 && gifs.length < totalCount}
         isLoading={isLoading}
