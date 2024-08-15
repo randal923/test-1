@@ -6,8 +6,8 @@ import React, {
   useState,
 } from 'react';
 
-import axios from 'axios';
 import debounce from 'lodash.debounce';
+import { searchGifs } from 'src/data/searchGifs';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,39 +20,28 @@ export default function Home() {
 
   const fetchGifs = useCallback(
     async (searchTerm: string, newOffset: number) => {
-      if (searchTerm) {
-        setIsLoading(true);
+      if (!searchTerm) return;
 
-        try {
-          const response = await axios.get(
-            `https://api.giphy.com/v1/gifs/search`,
-            {
-              params: {
-                api_key: "pLURtkhVrUXr3KG25Gy5IvzziV5OrZGa",
-                q: searchTerm,
-                limit: LIMIT,
-                offset: newOffset,
-                rating: "g",
-                lang: "en",
-              },
-            }
-          );
+      setIsLoading(true);
 
-          if (newOffset === 0) {
-            setGifs(response.data.data);
-          } else {
-            setGifs((prevGifs) => [...prevGifs, ...response.data.data]);
-          }
+      try {
+        const response = await searchGifs({
+          searchTerm,
+          offSet: newOffset,
+          limit: LIMIT,
+        });
 
-          setTotalCount(response.data.pagination.total_count);
-        } catch (error) {
-          console.error("Error searching GIFs", error);
-        } finally {
-          setIsLoading(false);
+        if (newOffset === 0) {
+          setGifs(response.data);
+        } else {
+          setGifs((prevGifs) => [...prevGifs, ...response.data]);
         }
-      } else {
-        setGifs([]);
-        setTotalCount(0);
+
+        setTotalCount(response.pagination.total_count);
+      } catch (error) {
+        console.error("Error searching GIFs", error);
+      } finally {
+        setIsLoading(false);
       }
     },
     []
