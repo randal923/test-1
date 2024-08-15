@@ -7,6 +7,7 @@ import React, {
 
 import debounce from 'lodash.debounce';
 import { GifGrid } from 'src/components/GifGrid';
+import { InitialMessage } from 'src/components/InitialMessage';
 import { LoadingIndicator } from 'src/components/LoadingIndicator';
 import { LoadMoreButton } from 'src/components/LoadMoreButton';
 import { NoResultsMessage } from 'src/components/NoResultsMessage';
@@ -21,12 +22,14 @@ export default function Home() {
   const [gifs, setGifs] = useState<GiphyGif[]>([]);
   const [offset, setOffset] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const fetchGifs = useCallback(
     async (searchTerm: string, newOffset: number) => {
       if (!searchTerm) return;
 
       setIsLoading(true);
+      setHasSearched(true);
 
       try {
         const response = await searchGifs({
@@ -58,7 +61,12 @@ export default function Home() {
   );
 
   useEffect(() => {
-    debouncedSearch(search);
+    if (search) {
+      debouncedSearch(search);
+    } else {
+      setGifs([]);
+      setHasSearched(false);
+    }
     return () => debouncedSearch.cancel();
   }, [search, debouncedSearch]);
 
@@ -75,9 +83,13 @@ export default function Home() {
   return (
     <main className="p-4">
       <SearchForm search={search} onSearchChange={handleSearchChange} />
+
       {isLoading && <LoadingIndicator />}
-      {!isLoading && gifs.length === 0 && <NoResultsMessage />}
+      {!isLoading && !hasSearched && <InitialMessage />}
+      {!isLoading && hasSearched && gifs.length === 0 && <NoResultsMessage />}
+
       <GifGrid gifs={gifs} />
+
       <LoadMoreButton
         isVisible={gifs.length > 0 && gifs.length < totalCount}
         isLoading={isLoading}
